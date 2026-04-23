@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 import { SupabaseService } from '../supabase/supabase.service';
 import { CreatePerfilAcademicoDto } from './dto/create-perfil-academico.dto';
+import { CreateEstresoresDto } from './dto/create-estresores.dto';
 
 @Injectable()
 export class PerfilesService {
@@ -45,6 +46,38 @@ export class PerfilesService {
       }
       throw new InternalServerErrorException(error.message);
     }
+    return data;
+  }
+
+  async guardarEstresores(usuarioId: string, dto: CreateEstresoresDto) {
+    const supabase = this.supabaseService.getClient();
+    const ahora = new Date().toISOString();
+
+    const registros = dto.factores.map((f) => ({
+      usuario_id: usuarioId,
+      factor_id: f.factor_id,
+      peso: f.peso,
+      fecha_actualizacion: ahora,
+    }));
+
+    const { data, error } = await supabase
+      .from('estresores')
+      .upsert(registros, { onConflict: 'usuario_id,factor_id' })
+      .select('usuario_id, factor_id, peso, fecha_actualizacion');
+
+    if (error) throw new InternalServerErrorException(error.message);
+    return data;
+  }
+
+  async obtenerEstresores(usuarioId: string) {
+    const supabase = this.supabaseService.getClient();
+    const { data, error } = await supabase
+      .from('estresores')
+      .select('usuario_id, factor_id, peso, fecha_actualizacion')
+      .eq('usuario_id', usuarioId)
+      .order('factor_id', { ascending: true });
+
+    if (error) throw new InternalServerErrorException(error.message);
     return data;
   }
 }
