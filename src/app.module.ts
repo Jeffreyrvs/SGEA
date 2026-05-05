@@ -6,6 +6,7 @@ import { ConfigModule } from '@nestjs/config';
 import { SupabaseModule } from './supabase/supabase.module';
 import { MateriasModule } from './materias/materias.module';
 import { PerfilesModule } from './perfiles/perfiles.module';
+import { EquiposModule } from './equipos/equipos.module';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { PerfilesModule } from './perfiles/perfiles.module';
     SupabaseModule,
     MateriasModule,
     PerfilesModule,
+    EquiposModule,
   ],
   controllers: [AppController],
   providers: [AppService],
