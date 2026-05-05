@@ -2,6 +2,7 @@ import { Injectable, ConflictException, InternalServerErrorException, Unauthoriz
 import { SupabaseService } from '../supabase/supabase.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
+import { ForgotPasswordDto } from './dto/forgot-password.dto';
 
 @Injectable()
 export class AuthService {
@@ -56,6 +57,18 @@ export class AuthService {
       expires_in: data.session.expires_in,
     };
 
+  }
+
+  async forgotPassword(dto: ForgotPasswordDto) {
+    const supabase = this.supabaseService.getClient();
+    const { error } = await supabase.auth.resetPasswordForEmail(dto.email, {
+      redirectTo: dto.redirectTo,
+    });
+
+    if (error) throw new BadRequestException(error.message);
+
+    // Mensaje genérico para evitar enumeración de correos
+    return { message: 'Si el correo existe, recibirás un enlace de recuperación en tu bandeja de entrada' };
   }
 
   // Mapa en memoria para rastrear intentos fallidos
