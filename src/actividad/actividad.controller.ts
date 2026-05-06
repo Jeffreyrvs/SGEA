@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, HttpCode, HttpStatus, UseGuards, Headers } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, HttpCode, HttpStatus, UseGuards, Headers, ParseIntPipe } from '@nestjs/common';
 import { ActividadService } from './actividad.service';
 import { CreateActividadDto } from './dto/create-actividad.dto';
 import { UpdateActividadDto } from './dto/update-actividad.dto';
@@ -28,13 +28,13 @@ export class ActividadController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
+  findOne(@Param('id', ParseIntPipe) id: number) {
     return this.actividadService.findOne(id);
   }
 
   @Patch(':id')
   update(
-    @Param('id') id: string,
+    @Param('id', ParseIntPipe) id: number,
     @Body() updateActividadDto: UpdateActividadDto,
     @Headers('authorization') authHeader?: string,
   ) {
@@ -44,17 +44,17 @@ export class ActividadController {
 
   @Patch(':id/status')
   updateStatus(
-    @Param('id') id: string,
-    @Body('status') status: StatusActividad,
+    @Param('id', ParseIntPipe) id: number,
+    @Body('estatus') estatus: StatusActividad,
     @Headers('authorization') authHeader?: string,
   ) {
     const token = authHeader?.split(' ')[1];
-    return this.actividadService.updateStatus(id, status, token);
+    return this.actividadService.updateStatus(id, estatus, token);
   }
 
   @Delete(':id')
   remove(
-    @Param('id') id: string,
+    @Param('id', ParseIntPipe) id: number,
     @Headers('authorization') authHeader?: string,
   ) {
     const token = authHeader?.split(' ')[1];

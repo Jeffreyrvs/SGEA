@@ -6,9 +6,9 @@ export class CreateActividadDto {
     @IsString()
     materia_id!: string;
 
-    @IsOptional()
+    @IsNotEmpty()
     @IsString()
-    usuario_id?: string;
+    usuario_id!: string;
 
     @IsNotEmpty()
     @IsString()
@@ -19,22 +19,26 @@ export class CreateActividadDto {
     tipo!: string;
 
     @IsNotEmpty()
-    @IsString()
-    materia!: string;
-
-    @IsNotEmpty()
     @IsDateString()
-    fecha_entrega!: string;
+    fecha_entrega!: Date;
 
     @IsOptional()
     @IsNumber()
     @Min(1)
     @Max(5)
-    nivel_dificultad?: number;
+    dificultad?: number;
 
     @IsOptional()
     @IsString()
-    calificacion_contenido?: string;
+    puntaje_contenido?: string;
+
+    @IsOptional()
+    @IsString()
+    importancia?: string;
+
+    @IsOptional()
+    @IsEnum(StatusActividad)
+    estatus?: StatusActividad;
 
     @IsOptional()
     @IsString()
@@ -47,10 +51,6 @@ export class CreateActividadDto {
     @IsOptional()
     @IsString()
     equipo_asignado?: string;
-
-    @IsOptional()
-    @IsEnum(StatusActividad)
-    status?: StatusActividad;
 
     @IsOptional()
     @IsDateString()

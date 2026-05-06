@@ -3,8 +3,6 @@ import { CreateActividadDto } from './create-actividad.dto';
 import { IsDateString, IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
 import { StatusActividad } from '../enum/status.enum';
 
-
-
 export class UpdateActividadDto extends PartialType(CreateActividadDto) {
   @IsOptional()
   @IsString()
@@ -27,24 +25,28 @@ export class UpdateActividadDto extends PartialType(CreateActividadDto) {
   tipo?: string;
 
   @IsOptional()
-  @IsString()
-  @IsNotEmpty()
-  materia?: string;
-
-  @IsOptional()
   @IsDateString()
   @IsNotEmpty()
-  fecha_entrega?: string;
+  fecha_entrega?: Date;
 
   @IsOptional()
   @IsNumber()
   @IsNotEmpty()
-  nivel_dificultad?: number;
+  dificultad?: number;
 
   @IsOptional()
   @IsString()
   @IsNotEmpty()
-  calificacion_contenido?: string;
+  puntaje_contenido?: string;
+
+  @IsOptional()
+  @IsString()
+  @IsNotEmpty()
+  importancia?: string;
+
+  @IsOptional()
+  @IsEnum(StatusActividad)
+  estatus?: StatusActividad;
 
   @IsOptional()
   @IsString()
@@ -62,13 +64,6 @@ export class UpdateActividadDto extends PartialType(CreateActividadDto) {
   equipo_asignado?: string;
 
   @IsOptional()
-  @IsEnum(StatusActividad)
-  status?: StatusActividad;
-
-  @IsOptional()
   @IsDateString()
   fechaCompletado?: Date;
-
-
-
 }

@@ -17,10 +17,11 @@ export class ActividadService {
         materia_id: dto.materia_id,
         nombre: dto.nombre,
         tipo: dto.tipo,
-        materia: dto.materia,
         fecha_entrega: dto.fecha_entrega,
-        nivel_dificultad: dto.nivel_dificultad ?? null,
-        calificacion_contenido: dto.calificacion_contenido ?? null,
+        dificultad: dto.dificultad ?? null,
+        puntaje_contenido: dto.puntaje_contenido ?? null,
+        importancia: dto.importancia ?? null,
+        estatus: dto.estatus ?? StatusActividad.PENDIENTE,
         descripcion: dto.descripcion ?? null,
         tiempo_estimado: dto.tiempo_estimado ?? null,
         equipo_asignado: dto.equipo_asignado ?? null,
@@ -43,12 +44,12 @@ export class ActividadService {
     return data;
   }
 
-  async findOne(id: string) {
+  async findOne(id: number) {
     const supabase = this.supabaseService.getClient();
     const { data, error } = await supabase
       .from('actividades')
       .select('*')
-      .eq('actividad_id', id)
+      .eq('id', id)
       .single();
 
     if (error) {
@@ -60,12 +61,12 @@ export class ActividadService {
     return data;
   }
 
-  async update(id: string, updateActividadDto: UpdateActividadDto, token?: string) {
+  async update(id: number, updateActividadDto: UpdateActividadDto, token?: string) {
     const supabase = this.supabaseService.getClient(token);
     const { data, error } = await supabase
       .from('actividades')
       .update(updateActividadDto)
-      .eq('actividad_id', id)
+      .eq('id', id)
       .select()
       .single();
 
@@ -73,11 +74,11 @@ export class ActividadService {
     return data;
   }
 
-  async updateStatus(id: string, nuevoEstado: StatusActividad, token?: string) {
+  async updateStatus(id: number, nuevoEstado: StatusActividad, token?: string) {
     const actividad = await this.findOne(id);
 
     const camposAActualizar: any = {
-      status: nuevoEstado,
+      estatus: nuevoEstado,
     };
 
     if (nuevoEstado === StatusActividad.COMPLETADA) {
@@ -89,12 +90,12 @@ export class ActividadService {
     return await this.update(id, camposAActualizar, token);
   }
 
-  async remove(id: string, token?: string) {
+  async remove(id: number, token?: string) {
     const supabase = this.supabaseService.getClient(token);
     const { error } = await supabase
       .from('actividades')
       .delete()
-      .eq('actividad_id', id);
+      .eq('id', id);
 
     if (error) throw new InternalServerErrorException(error.message);
     return { message: `Actividad con ID ${id} eliminada exitosamente` };

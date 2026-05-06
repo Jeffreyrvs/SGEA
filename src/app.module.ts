@@ -8,6 +8,7 @@ import { MateriasModule } from './materias/materias.module';
 import { PerfilesModule } from './perfiles/perfiles.module';
 import { EquiposModule } from './equipos/equipos.module';
 import { ActividadModule } from './actividad/actividad.module';
+import { RubricasModule } from './rubricas/rubricas.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { ActividadModule } from './actividad/actividad.module';
     PerfilesModule,
     EquiposModule,
     ActividadModule,
+    RubricasModule,
   ],
   controllers: [AppController],
   providers: [AppService],
