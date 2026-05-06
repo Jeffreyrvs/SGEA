@@ -1,6 +1,7 @@
 import { BadRequestException, ConflictException, Injectable, InternalServerErrorException } from '@nestjs/common';
 import { SupabaseService } from '../supabase/supabase.service';
 import { CreateEquipoDto } from './dto/create-equipo.dto';
+import { AddMiembroDto } from './dto/add-miembro.dto';
 
 @Injectable()
 export class EquiposService {
@@ -119,6 +120,56 @@ export class EquiposService {
         }
 
         return data;
+    }
+
+    async addMiembro(equipoId: string, dto: AddMiembroDto, accessToken: string) {
+        const supabase = this.supabaseService.getClient();
+        const supabaseUser = this.supabaseService.getAuthenticatedClient(accessToken);
+
+        // Verificar que el correo existe en el sistema
+        const { data: usuarios } = await supabase.auth.admin.listUsers();
+        const usuarioEncontrado = (usuarios.users as any[]).find(u => u.email === dto.email_miembro);
+
+        if (!usuarioEncontrado) {
+            throw new BadRequestException('El correo no está registrado en el sistema');
+        }
+
+        // Obtener la materia del equipo
+        const { data: equipo, error: equipoError } = await supabaseUser
+            .from('equipos')
+            .select('id, materia_id')
+            .eq('id', equipoId)
+            .single();
+
+        if (equipoError || !equipo) {
+            throw new BadRequestException('Equipo no encontrado o no tienes acceso');
+        }
+
+        // Insertar nuevo miembro (RLS valida que no esté ya en un equipo de esa materia)
+        const { error: miembroError } = await supabaseUser
+            .from('miembros_equipo')
+            .insert({
+            equipo_id: equipoId,
+            usuario_id: usuarioEncontrado.id,
+            nombre_miembro: usuarioEncontrado.user_metadata?.display_name ?? dto.email_miembro,
+            email_miembro: dto.email_miembro,
+            });
+
+        if (miembroError) {
+            if (miembroError.code === '42501' || miembroError.message.includes('row-level security')) {
+            throw new BadRequestException('El integrante ya pertenece a un equipo en esta materia');
+            }
+            throw new InternalServerErrorException('Error al agregar el integrante');
+        }
+
+        return {
+            message: 'Integrante agregado exitosamente',
+            miembro: {
+            usuario_id: usuarioEncontrado.id,
+            nombre_miembro: usuarioEncontrado.user_metadata?.display_name ?? dto.email_miembro,
+            email_miembro: dto.email_miembro,
+            },
+        };
     }
 
 }

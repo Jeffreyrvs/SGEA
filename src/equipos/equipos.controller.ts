@@ -3,6 +3,7 @@ import { EquiposService } from './equipos.service';
 import { CreateEquipoDto } from './dto/create-equipo.dto';
 import { SupabaseAuthGuard } from '../common/guards/supabase-auth.guard';
 import { User } from '../common/decorators/user.decorator';
+import { AddMiembroDto } from './dto/add-miembro.dto';
 
 @Controller('equipos')
 @UseGuards(SupabaseAuthGuard)
@@ -26,5 +27,15 @@ export class EquiposController {
     ) {
         const accessToken = authHeader.split(' ')[1];
         return this.equiposService.getEquiposPorMateria(materiaId, accessToken);
+    }
+
+    @Post(':equipoId/miembros')
+    addMiembro(
+    @Param('equipoId') equipoId: string,
+    @Body() dto: AddMiembroDto,
+    @Headers('authorization') authHeader: string,
+    ) {
+    const accessToken = authHeader.split(' ')[1];
+    return this.equiposService.addMiembro(equipoId, dto, accessToken);
     }
 }
