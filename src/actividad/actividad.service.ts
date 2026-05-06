@@ -25,7 +25,7 @@ export class ActividadService {
         descripcion: dto.descripcion ?? null,
         tiempo_estimado: dto.tiempo_estimado ?? null,
         equipo_asignado: dto.equipo_asignado ?? null,
-        fechaCompletado: dto.fechaCompletado ?? null,
+        //fechaCompletado: dto.fechaCompletado ?? null,
       })
       .select()
       .single();

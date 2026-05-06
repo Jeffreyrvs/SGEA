@@ -52,9 +52,9 @@ export class CreateActividadDto {
     @IsString()
     equipo_asignado?: string;
 
-    @IsOptional()
-    @IsDateString()
-    fechaCompletado?: Date;
+    //@IsOptional()
+    //@IsDateString()
+    //fechaCompletado?: Date;
 }
 
 
