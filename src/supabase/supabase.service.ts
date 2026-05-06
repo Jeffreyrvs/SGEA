@@ -31,4 +31,18 @@ export class SupabaseService {
     }
     return this.client;
   }
+
+  getAuthenticatedClient(accessToken: string): SupabaseClient {
+    return createClient(
+      this.config.get<string>('SUPABASE_URL')!,
+      this.config.get<string>('SUPABASE_ANON_KEY')!,
+      {
+        global: {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        },
+      }
+    );
+  }
 }

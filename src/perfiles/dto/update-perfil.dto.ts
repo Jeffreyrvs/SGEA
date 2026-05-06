@@ -1,4 +1,4 @@
-import { IsInt, IsOptional, IsString, Max, Min } from "class-validator";
+import { IsInt, IsNumber, IsOptional, IsString, Max, Min } from "class-validator";
 
 export class UpdatePerfilDto {
 
@@ -23,5 +23,11 @@ export class UpdatePerfilDto {
     @IsOptional()
     @IsString()
     avatar_url?: string;
+
+    @IsOptional()
+    @IsNumber()
+    @Min(0)
+    @Max(10)
+    promedio_general?: number;
     
 }
