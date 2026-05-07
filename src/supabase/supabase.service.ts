@@ -45,4 +45,20 @@ export class SupabaseService {
       }
     );
   }
+
+  // Fresh stateless client for auth operations (login, register, password reset).
+  // Never share this instance — signInWithPassword() mutates internal session state,
+  // so reusing a single client across requests causes one user's session to overwrite another's.
+  getAuthClient(): SupabaseClient {
+    return createClient(
+      this.config.get<string>('SUPABASE_URL')!,
+      this.config.get<string>('SUPABASE_ANON_KEY')!,
+      {
+        auth: {
+          persistSession: false,
+          autoRefreshToken: false,
+        },
+      },
+    );
+  }
 }
