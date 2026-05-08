@@ -25,11 +25,12 @@ export class MateriasService {
     return data;
   }
 
-  async findAll() {
+  async findAll(usuarioId: string) {
     const supabase = this.supabaseService.getClient();
     const { data, error } = await supabase
       .from('materias')
-      .select('*');
+      .select('*')
+      .eq('usuario_id', usuarioId);
 
     if (error) throw new InternalServerErrorException(error.message);
     return data;

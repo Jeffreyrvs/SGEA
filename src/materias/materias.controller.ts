@@ -22,8 +22,8 @@ export class MateriasController {
     }
 
     @Get()
-    findAll() {
-        return this.materiasService.findAll();
+    findAll(@User() user: { id: string }) {
+        return this.materiasService.findAll(user.id);
     }
 
     @Get(':id')
