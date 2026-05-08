@@ -23,13 +23,21 @@ export class ActividadController {
   }
 
   @Get()
-  findAll() {
-    return this.actividadService.findAll();
+  findAll(
+    @User() user: { id: string },
+    @Headers('authorization') authHeader?: string,
+  ) {
+    const token = authHeader?.split(' ')[1];
+    return this.actividadService.findAll(user.id, token);
   }
 
   @Get(':id')
-  findOne(@Param('id', ParseIntPipe) id: number) {
-    return this.actividadService.findOne(id);
+  findOne(
+    @Param('id', ParseIntPipe) id: number,
+    @Headers('authorization') authHeader?: string,
+  ) {
+    const token = authHeader?.split(' ')[1];
+    return this.actividadService.findOne(id, token);
   }
 
   @Patch(':id')

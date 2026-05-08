@@ -34,30 +34,26 @@ export class ActividadService {
     return data;
   }
 
-  async findAll() {
-    const supabase = this.supabaseService.getClient();
+  async findAll(usuarioId: string, token?: string) {
+    const supabase = this.supabaseService.getClient(token);
     const { data, error } = await supabase
       .from('actividades')
-      .select('*');
+      .select('*')
+      .eq('usuario_id', usuarioId);
 
     if (error) throw new InternalServerErrorException(error.message);
     return data;
   }
 
-  async findOne(id: number) {
-    const supabase = this.supabaseService.getClient();
+  async findOne(id: number, token?: string) {
+    const supabase = this.supabaseService.getClient(token);
     const { data, error } = await supabase
       .from('actividades')
       .select('*')
       .eq('id', id)
       .single();
 
-    if (error) {
-      if (error.code === 'PGRST116') {
-        throw new NotFoundException(`Actividad con ID ${id} no encontrada`);
-      }
-      throw new InternalServerErrorException(error.message);
-    }
+    if (error) throw new InternalServerErrorException(error.message);
     return data;
   }
 

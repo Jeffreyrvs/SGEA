@@ -23,8 +23,8 @@ export class RubricasService {
     return data;
   }
 
-  async findAll() {
-    const supabase = this.supabaseService.getClient();
+  async findAll(token?: string) {
+    const supabase = this.supabaseService.getClient(token);
     const { data, error } = await supabase
       .from('rubricas')
       .select('*');
@@ -33,19 +33,19 @@ export class RubricasService {
     return data;
   }
 
-  async findByMateria(materia_id: string) {
-    const supabase = this.supabaseService.getClient();
-    const { data, error } = await supabase
-      .from('rubricas')
-      .select('*')
-      .eq('materia_id', materia_id);
+  async findByMateria(materia_id: string, token?: string) {
+  const supabase = this.supabaseService.getClient(token);
+  const { data, error } = await supabase
+    .from('rubricas')
+    .select('*')
+    .eq('materia_id', materia_id);
 
-    if (error) throw new InternalServerErrorException(error.message);
-    return data;
-  }
+  if (error) throw new InternalServerErrorException(error.message);
+  return data;
+}
 
-  async findOne(id: string) {
-    const supabase = this.supabaseService.getClient();
+  async findOne(id: string, token?: string) {
+    const supabase = this.supabaseService.getClient(token);
     const { data, error } = await supabase
       .from('rubricas')
       .select('*')
