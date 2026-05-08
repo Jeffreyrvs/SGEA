@@ -22,15 +22,22 @@ export class MateriasController {
     }
 
     @Get()
-    findAll(@User() user: { id: string }) {
-        return this.materiasService.findAll(user.id);
+    findAll(
+        @User() user: { id: string },
+        @Headers('authorization') authHeader?: string, 
+    ) {
+        const token = authHeader?.split(' ')[1];
+        return this.materiasService.findAll(user.id, token); 
     }
 
     @Get(':id')
-    findOne(@Param('id') id: string) {
-        return this.materiasService.findOne(id);
+    findOne(
+        @Param('id') id: string,
+        @Headers('authorization') authHeader?: string, 
+    ) {
+        const token = authHeader?.split(' ')[1];
+        return this.materiasService.findOne(id, token);
     }
-
     @Patch(':id')
     update(
         @Param('id') id: string,

@@ -25,33 +25,28 @@ export class MateriasService {
     return data;
   }
 
-  async findAll(usuarioId: string) {
-    const supabase = this.supabaseService.getClient();
-    const { data, error } = await supabase
-      .from('materias')
-      .select('*')
-      .eq('usuario_id', usuarioId);
+  async findAll(usuarioId: string, token?: string) {
+  const supabase = this.supabaseService.getClient(token); // ← usar token
+  const { data, error } = await supabase
+    .from('materias')
+    .select('*')
+    .eq('usuario_id', usuarioId);
 
-    if (error) throw new InternalServerErrorException(error.message);
-    return data;
-  }
+  if (error) throw new InternalServerErrorException(error.message);
+  return data;
+}
 
-  async findOne(id: string) {
-    const supabase = this.supabaseService.getClient();
-    const { data, error } = await supabase
-      .from('materias')
-      .select('*')
-      .eq('id', id)
-      .single();
+async findOne(id: string, token?: string) {
+  const supabase = this.supabaseService.getClient(token); // ← usar token
+  const { data, error } = await supabase
+    .from('materias')
+    .select('*')
+    .eq('id', id)
+    .single();
 
-    if (error) {
-      if (error.code === 'PGRST116') {
-        throw new NotFoundException(`Materia con ID ${id} no encontrada`);
-      }
-      throw new InternalServerErrorException(error.message);
-    }
-    return data;
-  }
+  if (error) throw new InternalServerErrorException(error.message);
+  return data;
+}
 
   async update(id: string, updateMateriaDto: UpdateMateriaDto, token?: string) {
     const supabase = this.supabaseService.getClient(token);

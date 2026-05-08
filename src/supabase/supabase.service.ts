@@ -48,6 +48,7 @@ export class SupabaseService {
 
   // Fresh stateless client for auth operations (login, register, password reset).
   // Never share this instance — signInWithPassword() mutates internal session state,
+  //especifico para auth, no se debe compartir entre solicitudes
   // so reusing a single client across requests causes one user's session to overwrite another's.
   getAuthClient(): SupabaseClient {
     return createClient(
