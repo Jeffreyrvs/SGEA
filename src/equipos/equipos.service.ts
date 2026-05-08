@@ -1,6 +1,8 @@
 import { BadRequestException, ConflictException, Injectable, InternalServerErrorException } from '@nestjs/common';
 import { SupabaseService } from '../supabase/supabase.service';
 import { CreateEquipoDto } from './dto/create-equipo.dto';
+import { AddMiembroDto } from './dto/add-miembro.dto';
+import { CalificarEquipoDto } from './dto/calificar-equipo.dto';
 
 @Injectable()
 export class EquiposService {
@@ -120,5 +122,120 @@ export class EquiposService {
 
         return data;
     }
+
+    async addMiembro(equipoId: string, dto: AddMiembroDto, accessToken: string) {
+        const supabase = this.supabaseService.getClient();
+        const supabaseUser = this.supabaseService.getAuthenticatedClient(accessToken);
+
+        // Verificar que el correo existe en el sistema
+        const { data: usuarios } = await supabase.auth.admin.listUsers();
+        const usuarioEncontrado = (usuarios.users as any[]).find(u => u.email === dto.email_miembro);
+
+        if (!usuarioEncontrado) {
+            throw new BadRequestException('El correo no está registrado en el sistema');
+        }
+
+        // Obtener la materia del equipo
+        const { data: equipo, error: equipoError } = await supabaseUser
+            .from('equipos')
+            .select('id, materia_id')
+            .eq('id', equipoId)
+            .single();
+
+        if (equipoError || !equipo) {
+            throw new BadRequestException('Equipo no encontrado o no tienes acceso');
+        }
+
+        // Insertar nuevo miembro (RLS valida que no esté ya en un equipo de esa materia)
+        const { error: miembroError } = await supabaseUser
+            .from('miembros_equipo')
+            .insert({
+            equipo_id: equipoId,
+            usuario_id: usuarioEncontrado.id,
+            nombre_miembro: usuarioEncontrado.user_metadata?.display_name ?? dto.email_miembro,
+            email_miembro: dto.email_miembro,
+            });
+
+        if (miembroError) {
+            if (miembroError.code === '42501' || miembroError.message.includes('row-level security')) {
+            throw new BadRequestException('El integrante ya pertenece a un equipo en esta materia');
+            }
+            throw new InternalServerErrorException('Error al agregar el integrante');
+        }
+
+        return {
+            message: 'Integrante agregado exitosamente',
+            miembro: {
+            usuario_id: usuarioEncontrado.id,
+            nombre_miembro: usuarioEncontrado.user_metadata?.display_name ?? dto.email_miembro,
+            email_miembro: dto.email_miembro,
+            },
+        };
+    }
+
+    async calificarEquipo(equipoId: string, usuarioId: string, dto: CalificarEquipoDto, accessToken: string) {
+        const supabase = this.supabaseService.getClient();
+        const supabaseUser = this.supabaseService.getAuthenticatedClient(accessToken);
+
+        // Verificar que el usuario es miembro del equipo
+        const { data: esMiembro } = await supabaseUser
+            .from('miembros_equipo')
+            .select('usuario_id')
+            .eq('equipo_id', equipoId)
+            .eq('usuario_id', usuarioId)
+            .maybeSingle();
+
+        if (!esMiembro) {
+            throw new BadRequestException('Solo los miembros del equipo pueden calificarlo');
+        }
+
+        // Upsert calificación
+        const { error } = await supabase
+            .from('calificaciones_equipo')
+            .upsert({
+            equipo_id: equipoId,
+            calificador_id: usuarioId,
+            satisfaccion: dto.satisfaccion,
+            fecha_calificacion: new Date().toISOString(),
+            }, { onConflict: 'equipo_id,calificador_id' });
+
+        if (error) {
+            throw new InternalServerErrorException('Error al guardar la calificación');
+        }
+
+        // Obtener promedio actualizado por el trigger
+        const { data: equipo } = await supabase
+            .from('equipos')
+            .select('calificacion_promedio')
+            .eq('id', equipoId)
+            .single();
+
+        return {
+            message: 'Calificación guardada exitosamente',
+            equipo_id: equipoId,
+            promedio: equipo?.calificacion_promedio ?? null,
+        };
+    }
+
+    async getCalificacion(equipoId: string, accessToken: string) {
+        const supabase = this.supabaseService.getClient();
+
+        const { data, error } = await supabase
+            .from('equipos')
+            .select('id, nombre, calificacion_promedio')
+            .eq('id', equipoId)
+            .single();
+
+        if (error) {
+            throw new InternalServerErrorException('Error al obtener la calificación');
+        }
+
+        return {
+            equipo_id: equipoId,
+            promedio: data.calificacion_promedio ?? null,
+            mensaje: data.calificacion_promedio ? undefined : 'Nadie ha calificado este equipo aún',
+        };
+    }
+
 
 }

@@ -10,7 +10,7 @@ export class AuthService {
 
   // Funcion para el registro
   async register(dto: RegisterDto) {
-    const supabase = this.supabaseService.getClient();
+    const supabase = this.supabaseService.getAuthClient();
     const { data, error } = await supabase.auth.signUp({
       email: dto.email,
       password: dto.password,
@@ -27,7 +27,7 @@ export class AuthService {
   }
 
   async login(dto: LoginDto) {
-    const supabase = this.supabaseService.getClient(); 
+    const supabase = this.supabaseService.getAuthClient();
 
     // Verificar si está bloqueado antes de intentar
     this.verificarBloqueo(dto.email);
@@ -60,7 +60,7 @@ export class AuthService {
   }
 
   async forgotPassword(dto: ForgotPasswordDto) {
-    const supabase = this.supabaseService.getClient();
+    const supabase = this.supabaseService.getAuthClient();
     const { error } = await supabase.auth.resetPasswordForEmail(dto.email, {
       redirectTo: dto.redirectTo,
     });

@@ -14,7 +14,6 @@ export class CreateEquipoDto {
   nombre!: string;
 
   @IsArray()
-  @ArrayMinSize(1, { message: 'El equipo debe tener al menos un integrante además del creador' })
   @ValidateNested({ each: true })
   @Type(() => MiembroDto)
   miembros!: MiembroDto[];
