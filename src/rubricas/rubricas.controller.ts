@@ -29,6 +29,11 @@ export class RubricasController {
     return this.rubricasService.findOne(id);
   }
 
+  @Get('/materia/:materia_id')
+  findByMateria(@Param('materia_id') materia_id: string) {
+    return this.rubricasService.findByMateria(materia_id);
+  }
+
   @Patch(':id')
   update(
     @Param('id') id: string, 

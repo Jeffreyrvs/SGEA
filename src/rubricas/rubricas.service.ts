@@ -33,6 +33,17 @@ export class RubricasService {
     return data;
   }
 
+  async findByMateria(materia_id: string) {
+    const supabase = this.supabaseService.getClient();
+    const { data, error } = await supabase
+      .from('rubricas')
+      .select('*')
+      .eq('materia_id', materia_id);
+
+    if (error) throw new InternalServerErrorException(error.message);
+    return data;
+  }
+
   async findOne(id: string) {
     const supabase = this.supabaseService.getClient();
     const { data, error } = await supabase
