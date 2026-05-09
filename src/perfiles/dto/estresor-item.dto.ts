@@ -1,4 +1,4 @@
-import { IsInt, Min, Max } from 'class-validator';
+import { IsInt, IsNumber, Min, Max } from 'class-validator';
 
 export class EstresorItemDto {
   @IsInt()
@@ -6,8 +6,8 @@ export class EstresorItemDto {
   @Max(8)
   factor_id!: number;
 
-  @IsInt()
-  @Min(1)
+  @IsNumber({ allowNaN: false, allowInfinity: false })
+  @Min(0)
   @Max(5)
   peso!: number;
 }

@@ -10,7 +10,7 @@ import { UpdatePerfilDto } from './dto/update-perfil.dto';
 
 @Injectable()
 export class PerfilesService {
-  constructor(private readonly supabaseService: SupabaseService) {}
+  constructor(private readonly supabaseService: SupabaseService) { }
 
   async crearOActualizar(usuarioId: string, dto: CreatePerfilAcademicoDto) {
     const supabase = this.supabaseService.getClient();
