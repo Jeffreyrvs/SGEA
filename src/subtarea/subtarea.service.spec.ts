@@ -30,7 +30,8 @@ describe('SubtareaService', () => {
     }).compile();
 
     service = module.get<SubtareaService>(SubtareaService);
-    jest.clearAllMocks();
+    jest.resetAllMocks();
+    mockSupabaseService.getClient.mockReturnValue(mockSupabaseClient);
   });
 
   // ── create ──
@@ -257,6 +258,23 @@ describe('SubtareaService', () => {
         service.update(ACTIVIDAD_ID, SUBTAREA_ID, { asignado_a: 'no-miembro-uuid' }, USUARIO_ID),
       ).rejects.toThrow(new BadRequestException('El usuario no pertenece al equipo de esta actividad'));
     });
+
+    it('lanza BadRequestException cuando asignado_a es provisto y equipo_asignado es null', async () => {
+      mockSupabaseClient.from.mockReturnValueOnce({
+        select: jest.fn().mockReturnValue({
+          eq: jest.fn().mockReturnValue({
+            single: jest.fn().mockResolvedValue({
+              data: { ...actividadRow, equipo_asignado: null },
+              error: null,
+            }),
+          }),
+        }),
+      });
+
+      await expect(
+        service.update(ACTIVIDAD_ID, SUBTAREA_ID, { asignado_a: MIEMBRO_ID }, USUARIO_ID),
+      ).rejects.toThrow(new BadRequestException('La actividad no tiene un equipo asignado'));
+    });
   });
 
   // ── setCompletado ──
@@ -327,6 +345,34 @@ describe('SubtareaService', () => {
         service.setCompletado(ACTIVIDAD_ID, SUBTAREA_ID, true, USUARIO_ID),
       ).rejects.toThrow(ForbiddenException);
     });
+
+    it('funciona correctamente cuando la actividad no tiene equipo asignado', async () => {
+      const updatedRow = { id: SUBTAREA_ID, actividad_id: ACTIVIDAD_ID, nombre: 'Tarea A', completado: true };
+
+      mockSupabaseClient.from
+        .mockReturnValueOnce({
+          select: jest.fn().mockReturnValue({
+            eq: jest.fn().mockReturnValue({
+              single: jest.fn().mockResolvedValue({
+                data: { ...actividadRow, equipo_asignado: null },
+                error: null,
+              }),
+            }),
+          }),
+        })
+        .mockReturnValueOnce({
+          update: jest.fn().mockReturnValue({
+            eq: jest.fn().mockReturnValue({
+              select: jest.fn().mockReturnValue({
+                single: jest.fn().mockResolvedValue({ data: updatedRow, error: null }),
+              }),
+            }),
+          }),
+        });
+
+      const result = await service.setCompletado(ACTIVIDAD_ID, SUBTAREA_ID, true, USUARIO_ID);
+      expect(result).toEqual(updatedRow);
+    });
   });
 
   // ── remove ──
@@ -365,6 +411,28 @@ describe('SubtareaService', () => {
       await expect(
         service.remove(ACTIVIDAD_ID, SUBTAREA_ID, USUARIO_ID),
       ).rejects.toThrow(ForbiddenException);
+    });
+
+    it('funciona correctamente cuando la actividad no tiene equipo asignado', async () => {
+      mockSupabaseClient.from
+        .mockReturnValueOnce({
+          select: jest.fn().mockReturnValue({
+            eq: jest.fn().mockReturnValue({
+              single: jest.fn().mockResolvedValue({
+                data: { ...actividadRow, equipo_asignado: null },
+                error: null,
+              }),
+            }),
+          }),
+        })
+        .mockReturnValueOnce({
+          delete: jest.fn().mockReturnValue({
+            eq: jest.fn().mockResolvedValue({ error: null }),
+          }),
+        });
+
+      const result = await service.remove(ACTIVIDAD_ID, SUBTAREA_ID, USUARIO_ID);
+      expect(result).toEqual({ message: `Subtarea ${SUBTAREA_ID} eliminada exitosamente` });
     });
   });
 });

@@ -49,6 +49,16 @@ export class SubtareaService {
     }
   }
 
+  private async validateOwnership(
+    actividadId: string,
+    userId: string,
+    token?: string,
+  ) {
+    const actividad = await this.fetchActividad(actividadId, token);
+    this.assertOwner(actividad, userId);
+    return actividad;
+  }
+
   private async validateWrite(
     actividadId: string,
     userId: string,
@@ -111,7 +121,11 @@ export class SubtareaService {
     userId: string,
     token?: string,
   ) {
-    await this.validateWrite(actividadId, userId, dto.asignado_a, token);
+    if (dto.asignado_a !== undefined) {
+      await this.validateWrite(actividadId, userId, dto.asignado_a, token);
+    } else {
+      await this.validateOwnership(actividadId, userId, token);
+    }
 
     const supabase = this.supabaseService.getClient(token);
     const { data, error } = await supabase
@@ -132,7 +146,7 @@ export class SubtareaService {
     userId: string,
     token?: string,
   ) {
-    await this.validateWrite(actividadId, userId, undefined, token);
+    await this.validateOwnership(actividadId, userId, token);
 
     const supabase = this.supabaseService.getClient(token);
     const { data, error } = await supabase
@@ -152,7 +166,7 @@ export class SubtareaService {
     userId: string,
     token?: string,
   ) {
-    await this.validateWrite(actividadId, userId, undefined, token);
+    await this.validateOwnership(actividadId, userId, token);
 
     const supabase = this.supabaseService.getClient(token);
     const { error } = await supabase
