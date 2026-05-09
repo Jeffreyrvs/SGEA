@@ -1,4 +1,4 @@
-import { Controller, Post, Get, Body, Param, UseGuards, Headers } from '@nestjs/common';
+import { Controller, Post, Get, Body, Param, UseGuards, Headers, Delete } from '@nestjs/common';
 import { EquiposService } from './equipos.service';
 import { CreateEquipoDto } from './dto/create-equipo.dto';
 import { SupabaseAuthGuard } from '../common/guards/supabase-auth.guard';
@@ -60,4 +60,14 @@ export class EquiposController {
     return this.equiposService.getCalificacion(equipoId, accessToken);
     }
     
+    @Delete(':equipoId/miembros/:usuarioId')
+    removeMiembro(
+    @Param('equipoId') equipoId: string,
+    @Param('usuarioId') usuarioId: string,
+    @User() user: { id: string },
+    @Headers('authorization') authHeader: string,
+    ) {
+    const accessToken = authHeader.split(' ')[1];
+    return this.equiposService.removeMiembro(equipoId, usuarioId, user.id, accessToken);
+    }
 }
