@@ -9,6 +9,7 @@ import { PerfilesModule } from './perfiles/perfiles.module';
 import { EquiposModule } from './equipos/equipos.module';
 import { ActividadModule } from './actividad/actividad.module';
 import { RubricasModule } from './rubricas/rubricas.module';
+import { SubtareaModule } from './subtarea/subtarea.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { RubricasModule } from './rubricas/rubricas.module';
     EquiposModule,
     ActividadModule,
     RubricasModule,
+    SubtareaModule,
   ],
   controllers: [AppController],
   providers: [AppService],
