@@ -4,7 +4,7 @@ import { EstresorItemDto } from './estresor-item.dto';
 
 export class CreateEstresoresDto {
   @IsArray()
-  @ArrayMinSize(8)
+  @ArrayMinSize(1)
   @ArrayMaxSize(8)
   @ValidateNested({ each: true })
   @Type(() => EstresorItemDto)
