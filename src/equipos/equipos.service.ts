@@ -203,7 +203,56 @@ export class EquiposService {
             throw new InternalServerErrorException('Error al guardar la calificación');
         }
 
-        // Obtener promedio actualizado por el trigger
+        // Actualizar estresor clima social (factor_id = 5)
+        const FACTOR_CLIMA_SOCIAL = 5;
+
+        // Verificar si el usuario ya tiene el estresor clima social
+        const { data: estresorExistente } = await supabase
+            .from('estresores')
+            .select('peso')
+            .eq('usuario_id', usuarioId)
+            .eq('factor_id', FACTOR_CLIMA_SOCIAL)
+            .maybeSingle();
+
+        // Obtener todos los equipos donde el usuario es miembro
+        const { data: equiposDelUsuario } = await supabase
+            .from('miembros_equipo')
+            .select('equipo_id')
+            .eq('usuario_id', usuarioId);
+
+        const equipoIds = equiposDelUsuario?.map(e => e.equipo_id) ?? [];
+
+        // Obtener calificacion_promedio de todos esos equipos
+        const { data: equipos } = await supabase
+            .from('equipos')
+            .select('calificacion_promedio')
+            .in('id', equipoIds)
+            .not('calificacion_promedio', 'is', null);
+
+        // Calcular promedio de todos los equipos
+        const promedioTodosEquipos = equipos && equipos.length > 0
+            ? equipos.reduce((sum, e) => sum + Number(e.calificacion_promedio), 0) / equipos.length
+            : dto.satisfaccion;
+
+        // Calcular nuevo peso del estresor clima social
+        let nuevoPeso: number;
+        if (estresorExistente) {
+            nuevoPeso = Math.round((estresorExistente.peso + promedioTodosEquipos) / 2);
+        } else {
+            nuevoPeso = Math.round(promedioTodosEquipos);
+        }
+
+        // Upsert estresor clima social
+        await supabase
+            .from('estresores')
+            .upsert({
+            usuario_id: usuarioId,
+            factor_id: FACTOR_CLIMA_SOCIAL,
+            peso: nuevoPeso,
+            fecha_actualizacion: new Date().toISOString(),
+            }, { onConflict: 'usuario_id,factor_id' });
+
+        // Obtener promedio del equipo actual
         const { data: equipo } = await supabase
             .from('equipos')
             .select('calificacion_promedio')
@@ -237,5 +286,43 @@ export class EquiposService {
         };
     }
 
+    async removeMiembro(equipoId: string, usuarioIdAEliminar: string, usuarioId: string, accessToken: string) {
+        const supabase = this.supabaseService.getClient();
+        const supabaseUser = this.supabaseService.getAuthenticatedClient(accessToken);
 
+        // Verificar que el usuario es el creador del equipo
+        const { data: equipo } = await supabaseUser
+            .from('equipos')
+            .select('creador_id')
+            .eq('id', equipoId)
+            .single();
+
+        if (!equipo) {
+            throw new BadRequestException('Equipo no encontrado');
+        }
+
+        if (equipo.creador_id !== usuarioId) {
+            throw new BadRequestException('Solo el creador del equipo puede eliminar integrantes');
+        }
+
+        // No permitir que el creador se elimine a sí mismo
+        if (usuarioIdAEliminar === usuarioId) {
+            throw new BadRequestException('El creador no puede eliminarse a sí mismo del equipo');
+        }
+
+        // Eliminar miembro
+        const { error } = await supabase
+            .from('miembros_equipo')
+            .delete()
+            .eq('equipo_id', equipoId)
+            .eq('usuario_id', usuarioIdAEliminar);
+
+        if (error) {
+            throw new InternalServerErrorException('Error al eliminar el integrante');
+        }
+
+        return {
+            message: 'Integrante eliminado exitosamente',
+        };
+    }
 }
