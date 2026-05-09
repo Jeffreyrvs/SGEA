@@ -1,7 +1,7 @@
 import { StatusActividad } from "../enum/status.enum";
 
 export class Actividad {
-    id!: number;
+    id!: string;
     materia_id!: string;
     usuario_id!: string;
     nombre!: string;

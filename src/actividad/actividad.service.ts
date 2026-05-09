@@ -45,7 +45,7 @@ export class ActividadService {
     return data;
   }
 
-  async findOne(id: number, token?: string) {
+  async findOne(id: string, token?: string) {
     const supabase = this.supabaseService.getClient(token);
     const { data, error } = await supabase
       .from('actividades')
@@ -57,7 +57,7 @@ export class ActividadService {
     return data;
   }
 
-  async update(id: number, updateActividadDto: UpdateActividadDto, token?: string) {
+  async update(id: string, updateActividadDto: UpdateActividadDto, token?: string) {
     const supabase = this.supabaseService.getClient(token);
     const { data, error } = await supabase
       .from('actividades')
@@ -70,7 +70,7 @@ export class ActividadService {
     return data;
   }
 
-  async updateStatus(id: number, nuevoEstado: StatusActividad, token?: string) {
+  async updateStatus(id: string, nuevoEstado: StatusActividad, token?: string) {
     const actividad = await this.findOne(id);
 
     const camposAActualizar: any = {
@@ -86,7 +86,7 @@ export class ActividadService {
     return await this.update(id, camposAActualizar, token);
   }
 
-  async remove(id: number, token?: string) {
+  async remove(id: string, token?: string) {
     const supabase = this.supabaseService.getClient(token);
     const { error } = await supabase
       .from('actividades')
