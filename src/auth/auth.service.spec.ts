@@ -11,7 +11,7 @@ const mockSupabaseClient = {
 };
 
 const mockSupabaseService = {
-  getClient: jest.fn().mockReturnValue(mockSupabaseClient),
+  getAuthClient: jest.fn().mockReturnValue(mockSupabaseClient),
 };
 
 // ============ US-01: Registro ============
