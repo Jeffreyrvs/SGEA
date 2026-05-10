@@ -10,6 +10,18 @@ export class ActividadService {
 
   async create(dto: CreateActividadDto, usuarioId?: string, token?: string) {
     const supabase = this.supabaseService.getClient(token);
+
+    const { data: rubrica, error: rubricaError } = await supabase
+      .from('rubricas')
+      .select('porcentaje')
+      .eq('materia_id', dto.materia_id)
+      .eq('tipo_actividad', dto.tipo)
+      .single();
+
+    if (rubricaError) throw new InternalServerErrorException(rubricaError.message);
+
+    //const puntajeTotalMateria = rubrica.porcentaje;
+
     const { data, error } = await supabase
       .from('actividades')
       .insert({
@@ -20,7 +32,7 @@ export class ActividadService {
         fecha_entrega: dto.fecha_entrega,
         dificultad: dto.dificultad ?? null,
         puntaje_contenido: dto.puntaje_contenido ?? null,
-        importancia: dto.importancia ?? null,
+        importancia: rubrica?.porcentaje ?? dto.importancia ?? null,
         estatus: dto.estatus ?? StatusActividad.PENDIENTE,
         descripcion: dto.descripcion ?? null,
         tiempo_estimado: dto.tiempo_estimado ?? null,
