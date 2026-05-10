@@ -3,10 +3,11 @@ import { SupabaseService } from '../supabase/supabase.service';
 import { CreateEquipoDto } from './dto/create-equipo.dto';
 import { AddMiembroDto } from './dto/add-miembro.dto';
 import { CalificarEquipoDto } from './dto/calificar-equipo.dto';
+import { PerfilesService } from '../perfiles/perfiles.service';
 
 @Injectable()
 export class EquiposService {
-    constructor(private readonly supabaseService: SupabaseService) {}
+    constructor(private readonly supabaseService: SupabaseService, private readonly perfilesService: PerfilesService,) {}
 
     async crearEquipo(usuarioId: string, dto: CreateEquipoDto, accessToken: string) {
         const supabase = this.supabaseService.getClient(); // para operaciones admin
@@ -325,4 +326,62 @@ export class EquiposService {
             message: 'Integrante eliminado exitosamente',
         };
     }
+
+    async getNivelEstresEquipo(equipoId: string, accessToken: string) {
+        const supabase = this.supabaseService.getClient();
+        const supabaseUser = this.supabaseService.getAuthenticatedClient(accessToken);
+
+        // Obtener miembros del equipo
+        const { data: miembros, error } = await supabaseUser
+            .from('miembros_equipo')
+            .select('usuario_id, nombre_miembro, email_miembro')
+            .eq('equipo_id', equipoId);
+
+        if (error || !miembros) {
+            throw new InternalServerErrorException('Error al obtener los miembros del equipo');
+        }
+
+        // Calcular NE individual de cada miembro
+        const resultados = await Promise.all(
+            miembros.map(async (miembro) => {
+            // Miembro sin cuenta en SGEA
+            if (!miembro.usuario_id) {
+                return {
+                nombre_miembro: miembro.nombre_miembro,
+                email_miembro: miembro.email_miembro,
+                ne: 'No disponible',
+                };
+            }
+
+            const ne = await this.perfilesService.calcularNivelEstres(miembro.usuario_id);
+
+            return {
+                nombre_miembro: miembro.nombre_miembro,
+                email_miembro: miembro.email_miembro,
+                ne: ne.sin_datos ? 'Sin datos' : { valor: ne.valor, categoria: ne.categoria },
+            };
+            })
+        );
+
+        // Calcular promedio solo con miembros que tienen NE calculado
+        const neValidos = resultados
+            .filter(r => typeof r.ne === 'object' && r.ne !== null && 'valor' in r.ne)
+            .map(r => (r.ne as { valor: number; categoria: string }).valor);
+
+        const promedioEquipo = neValidos.length > 0
+            ? Math.round(neValidos.reduce((sum, ne) => sum + ne, 0) / neValidos.length * 10) / 10
+            : null;
+
+        const categoriaEquipo = promedioEquipo === null
+            ? 'Sin datos'
+            : promedioEquipo < 34 ? 'Bajo' : promedioEquipo < 67 ? 'Medio' : 'Alto';
+
+        return {
+            equipo_id: equipoId,
+            ne_equipo: promedioEquipo,
+            categoria_equipo: categoriaEquipo,
+            miembros: resultados,
+        };
+    }
+
 }

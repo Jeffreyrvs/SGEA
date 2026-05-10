@@ -70,4 +70,13 @@ export class EquiposController {
     const accessToken = authHeader.split(' ')[1];
     return this.equiposService.removeMiembro(equipoId, usuarioId, user.id, accessToken);
     }
+
+    @Get(':equipoId/nivel-estres')
+    getNivelEstresEquipo(
+    @Param('equipoId') equipoId: string,
+    @Headers('authorization') authHeader: string,
+    ) {
+    const accessToken = authHeader.split(' ')[1];
+    return this.equiposService.getNivelEstresEquipo(equipoId, accessToken);
+    }
 }

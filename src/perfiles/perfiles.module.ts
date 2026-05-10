@@ -6,5 +6,6 @@ import { SupabaseAuthGuard } from '../common/guards/supabase-auth.guard';
 @Module({
   controllers: [PerfilesController],
   providers: [PerfilesService, SupabaseAuthGuard],
+  exports: [PerfilesService],
 })
 export class PerfilesModule {}
