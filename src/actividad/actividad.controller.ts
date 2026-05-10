@@ -40,6 +40,24 @@ export class ActividadController {
     return this.actividadService.findOne(id, token);
   }
 
+  @Get('materia/:id_materia')
+  findByMateria(
+    @Param('id_materia', ParseUUIDPipe) id_materia: string,
+    @Headers('authorization') authHeader?: string,
+  ) {
+    const token = authHeader?.split(' ')[1];
+    return this.actividadService.findByMateria(id_materia, token);
+  }
+
+  @Get('usuario/:id_usuario')
+  findByUsuario(
+    @Param('id_usuario', ParseUUIDPipe) id_usuario: string,
+    @Headers('authorization') authHeader?: string,
+  ) {
+    const token = authHeader?.split(' ')[1];
+    return this.actividadService.findByUsuario(id_usuario, token);
+  }
+
   @Patch(':id')
   update(
     @Param('id', ParseUUIDPipe) id: string,

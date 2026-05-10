@@ -57,6 +57,28 @@ export class ActividadService {
     return data;
   }
 
+  async findByMateria(id_materia: string, token?: string) {
+    const supabase = this.supabaseService.getClient(token);
+    const { data, error } = await supabase
+      .from('actividades')
+      .select('*')
+      .eq('materia_id', id_materia);
+
+    if (error) throw new InternalServerErrorException(error.message);
+    return data;
+  }
+
+  async findByUsuario(id_usuario: string, token?: string) {
+    const supabase = this.supabaseService.getClient(token);
+    const { data, error } = await supabase
+      .from('actividades')
+      .select('*')
+      .eq('usuario_id', id_usuario);
+
+    if (error) throw new InternalServerErrorException(error.message);
+    return data;
+  }
+
   async update(id: string, updateActividadDto: UpdateActividadDto, token?: string) {
     const supabase = this.supabaseService.getClient(token);
     const { data, error } = await supabase
