@@ -107,6 +107,39 @@ export class PerfilesService {
     return data;
   }
 
+  private readonly PESOS_REALES: Record<number, number> = {
+    1: 0.143, 2: 0.151, 3: 0.152, 4: 0.063,
+    5: 0.132, 6: 0.118, 7: 0.106, 8: 0.134,
+  };
+
+  async calcularNivelEstres(usuarioId: string) {
+    const supabase = this.supabaseService.getClient();
+    const { data, error } = await supabase
+      .from('estresores')
+      .select('factor_id, peso')
+      .eq('usuario_id', usuarioId);
+
+    if (error) throw new InternalServerErrorException(error.message);
+
+    const rows = data as { factor_id: number; peso: number }[];
+    let numerador = 0;
+    let denominador = 0;
+
+    for (const row of rows) {
+      const pr = this.PESOS_REALES[row.factor_id];
+      if (pr !== undefined) {
+        numerador += row.peso * pr;
+        denominador += pr;
+      }
+    }
+
+    if (denominador < 0.5) return { sin_datos: true };
+
+    const valor = Math.round((numerador / denominador) * 20 * 10) / 10;
+    const categoria = valor < 34 ? 'Bajo' : valor < 67 ? 'Medio' : 'Alto';
+    return { valor, categoria, sin_datos: false };
+  }
+
   async uploadAvatar(userId: string, file: Express.Multer.File) {
     const supabase = this.supabaseService.getClient();
 

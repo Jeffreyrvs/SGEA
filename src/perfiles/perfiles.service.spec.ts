@@ -197,6 +197,124 @@ describe('PerfilesService', () => {
     });
   });
 
+  // ── calcularNivelEstres ──
+  describe('calcularNivelEstres', () => {
+    it('error de BD → lanza InternalServerErrorException', async () => {
+      mockSupabaseClient.from.mockReturnValue({
+        select: jest.fn().mockReturnValue({
+          eq: jest.fn().mockResolvedValue({ data: null, error: { message: 'DB error' } }),
+        }),
+      });
+
+      await expect(service.calcularNivelEstres('uuid-123')).rejects.toThrow(
+        InternalServerErrorException,
+      );
+    });
+
+    it('8 factores todos en peso=0 → valor: 0, Bajo', async () => {
+      const factores = [1, 2, 3, 4, 5, 6, 7, 8].map((id) => ({ factor_id: id, peso: 0 }));
+      mockSupabaseClient.from.mockReturnValue({
+        select: jest.fn().mockReturnValue({
+          eq: jest.fn().mockResolvedValue({ data: factores, error: null }),
+        }),
+      });
+
+      const result = await service.calcularNivelEstres('uuid-123');
+      expect(result).toEqual({ valor: 0, categoria: 'Bajo', sin_datos: false });
+    });
+
+    it('8 factores todos en peso=5 → valor: 100, Alto', async () => {
+      const factores = [1, 2, 3, 4, 5, 6, 7, 8].map((id) => ({ factor_id: id, peso: 5 }));
+      mockSupabaseClient.from.mockReturnValue({
+        select: jest.fn().mockReturnValue({
+          eq: jest.fn().mockResolvedValue({ data: factores, error: null }),
+        }),
+      });
+
+      const result = await service.calcularNivelEstres('uuid-123');
+      expect(result).toEqual({ valor: 100, categoria: 'Alto', sin_datos: false });
+    });
+
+    it('8 factores con pesos variados → valor y categoría correctos', async () => {
+      const factores = [
+        { factor_id: 1, peso: 3 }, { factor_id: 2, peso: 4 },
+        { factor_id: 3, peso: 2 }, { factor_id: 4, peso: 5 },
+        { factor_id: 5, peso: 1 }, { factor_id: 6, peso: 3 },
+        { factor_id: 7, peso: 4 }, { factor_id: 8, peso: 2 },
+      ];
+      mockSupabaseClient.from.mockReturnValue({
+        select: jest.fn().mockReturnValue({
+          eq: jest.fn().mockResolvedValue({ data: factores, error: null }),
+        }),
+      });
+
+      const result = await service.calcularNivelEstres('uuid-123');
+      expect(result).toEqual({ valor: 56.7, categoria: 'Medio', sin_datos: false });
+    });
+
+    it('factores parciales con Σ peso_real ≥ 0.5 → devuelve valor y categoría', async () => {
+      // factors 1-4: peso_real sum = 0.143+0.151+0.152+0.063 = 0.509
+      const factores = [1, 2, 3, 4].map((id) => ({ factor_id: id, peso: 3 }));
+      mockSupabaseClient.from.mockReturnValue({
+        select: jest.fn().mockReturnValue({
+          eq: jest.fn().mockResolvedValue({ data: factores, error: null }),
+        }),
+      });
+
+      const result = await service.calcularNivelEstres('uuid-123');
+      expect(result).toEqual({ valor: 60, categoria: 'Medio', sin_datos: false });
+    });
+
+    it('factores parciales con Σ peso_real < 0.5 → sin_datos: true', async () => {
+      // only factor 4: peso_real = 0.063 < 0.5
+      mockSupabaseClient.from.mockReturnValue({
+        select: jest.fn().mockReturnValue({
+          eq: jest.fn().mockResolvedValue({
+            data: [{ factor_id: 4, peso: 5 }],
+            error: null,
+          }),
+        }),
+      });
+
+      const result = await service.calcularNivelEstres('uuid-123');
+      expect(result).toEqual({ sin_datos: true });
+    });
+
+    it('valores límite de categoría: 33.9→Bajo, 34→Medio, 66.9→Medio, 67→Alto', async () => {
+      const mockFactores = (peso: number) => {
+        const factores = [1, 2, 3, 4, 5, 6, 7, 8].map((id) => ({ factor_id: id, peso }));
+        mockSupabaseClient.from.mockReturnValue({
+          select: jest.fn().mockReturnValue({
+            eq: jest.fn().mockResolvedValue({ data: factores, error: null }),
+          }),
+        });
+      };
+
+      mockFactores(1.695);
+      expect(await service.calcularNivelEstres('uuid-123')).toMatchObject({ valor: 33.9, categoria: 'Bajo' });
+
+      mockFactores(1.7);
+      expect(await service.calcularNivelEstres('uuid-123')).toMatchObject({ valor: 34, categoria: 'Medio' });
+
+      mockFactores(3.345);
+      expect(await service.calcularNivelEstres('uuid-123')).toMatchObject({ valor: 66.9, categoria: 'Medio' });
+
+      mockFactores(3.35);
+      expect(await service.calcularNivelEstres('uuid-123')).toMatchObject({ valor: 67, categoria: 'Alto' });
+    });
+
+    it('sin filas → sin_datos: true', async () => {
+      mockSupabaseClient.from.mockReturnValue({
+        select: jest.fn().mockReturnValue({
+          eq: jest.fn().mockResolvedValue({ data: [], error: null }),
+        }),
+      });
+
+      const result = await service.calcularNivelEstres('uuid-123');
+      expect(result).toEqual({ sin_datos: true });
+    });
+  });
+
   // ── uploadAvatar ──
   describe('uploadAvatar', () => {
     it('debe subir el avatar y retornar la URL pública', async () => {

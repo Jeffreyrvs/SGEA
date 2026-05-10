@@ -61,4 +61,10 @@ export class PerfilesController {
   obtenerEstresores(@User() user: { id: string }) {
     return this.perfilesService.obtenerEstresores(user.id);
   }
+
+  // ── Nivel de estrés ──
+  @Get('nivel-estres')
+  calcularNivelEstres(@User() user: { id: string }) {
+    return this.perfilesService.calcularNivelEstres(user.id);
+  }
 }
