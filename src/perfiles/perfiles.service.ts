@@ -169,4 +169,23 @@ export class PerfilesService {
     return { avatar_url: urlData.publicUrl };
   }
 
+  async getAvatar(usuarioId: string) {
+    const supabase = this.supabaseService.getClient();
+
+    const { data, error } = await supabase
+      .from('perfil_usuario')
+      .select('avatar_url')
+      .eq('usuario_id', usuarioId)
+      .single();
+
+    if (error || !data) {
+      throw new NotFoundException('Usuario no encontrado');
+    }
+
+    return {
+      usuario_id: usuarioId,
+      avatar_url: data.avatar_url ?? null,
+    };
+  }
+
 }

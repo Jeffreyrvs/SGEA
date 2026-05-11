@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Post, Patch, UseGuards, UseInterceptors, UploadedFile, BadRequestException } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, HttpStatus, Post, Patch, UseGuards, UseInterceptors, UploadedFile, BadRequestException, Param } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { PerfilesService } from './perfiles.service';
 import { CreatePerfilAcademicoDto } from './dto/create-perfil-academico.dto';
@@ -66,5 +66,11 @@ export class PerfilesController {
   @Get('nivel-estres')
   calcularNivelEstres(@User() user: { id: string }) {
     return this.perfilesService.calcularNivelEstres(user.id);
+  }
+
+  // ── Obtener avatar de un usuario ──
+  @Get('avatar/:usuarioId')
+  getAvatar(@Param('usuarioId') usuarioId: string) {
+    return this.perfilesService.getAvatar(usuarioId);
   }
 }
