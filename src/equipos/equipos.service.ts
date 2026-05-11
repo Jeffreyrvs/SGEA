@@ -327,6 +327,35 @@ export class EquiposService {
         };
     }
 
+    async getMisEquipos(usuarioId: string, accessToken: string) {
+        const supabaseUser = this.supabaseService.getAuthenticatedClient(accessToken);
+
+        const { data, error } = await supabaseUser
+            .from('miembros_equipo')
+            .select(`
+            equipo_id,
+            equipos (
+                id,
+                nombre,
+                materia_id,
+                creador_id,
+                calificacion_promedio,
+                miembros_equipo (
+                nombre_miembro,
+                email_miembro,
+                usuario_id
+                )
+            )
+            `)
+            .eq('usuario_id', usuarioId);
+
+        if (error) {
+            throw new InternalServerErrorException('Error al obtener los equipos');
+        }
+
+        return data?.map(d => d.equipos) ?? [];
+    }
+
     async getNivelEstresEquipo(equipoId: string, accessToken: string) {
         const supabase = this.supabaseService.getClient();
         const supabaseUser = this.supabaseService.getAuthenticatedClient(accessToken);

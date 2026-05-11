@@ -21,6 +21,15 @@ export class EquiposController {
         return this.equiposService.crearEquipo(user.id, dto, accessToken);
     }
 
+    @Get('mis-equipos')
+    getMisEquipos(
+    @User() user: { id: string },
+    @Headers('authorization') authHeader: string,
+    ) {
+    const accessToken = authHeader.split(' ')[1];
+    return this.equiposService.getMisEquipos(user.id, accessToken);
+    }
+
     @Get('materia/:materiaId')
     getEquiposPorMateria(
     @Param('materiaId') materiaId: string,
