@@ -111,12 +111,6 @@ export class ActividadService {
       estatus: nuevoEstado,
     };
 
-    if (nuevoEstado === StatusActividad.COMPLETADA) {
-      camposAActualizar.fechaCompletado = new Date().toISOString();
-    } else {
-      camposAActualizar.fechaCompletado = null;
-    }
-
     return await this.update(id, camposAActualizar, token);
   }
 
