@@ -50,7 +50,7 @@ export class CreateActividadDto {
 
     @IsOptional()
     @IsString()
-    equipo_asignado?: string;
+    equipo_id?: string;
 
     //@IsOptional()
     //@IsDateString()

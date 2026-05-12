@@ -9,7 +9,7 @@ import { CalificarEquipoDto } from './dto/calificar-equipo.dto';
 @Controller('equipos')
 @UseGuards(SupabaseAuthGuard)
 export class EquiposController {
-  constructor(private readonly equiposService: EquiposService) {}
+    constructor(private readonly equiposService: EquiposService) { }
 
     @Post()
     crearEquipo(
@@ -23,69 +23,69 @@ export class EquiposController {
 
     @Get('mis-equipos')
     getMisEquipos(
-    @User() user: { id: string },
-    @Headers('authorization') authHeader: string,
+        @User() user: { id: string },
+        @Headers('authorization') authHeader: string,
     ) {
-    const accessToken = authHeader.split(' ')[1];
-    return this.equiposService.getMisEquipos(user.id, accessToken);
+        const accessToken = authHeader.split(' ')[1];
+        return this.equiposService.getMisEquipos(user.id, accessToken);
     }
 
     @Get('materia/:materiaId')
     getEquiposPorMateria(
-    @Param('materiaId') materiaId: string,
-    @Headers('authorization') authHeader: string,
+        @Param('materiaId') materiaId: string,
+        @Headers('authorization') authHeader: string,
     ) {
         const accessToken = authHeader.split(' ')[1];
         return this.equiposService.getEquiposPorMateria(materiaId, accessToken);
     }
 
-    @Post(':equipoId/miembros')
+    @Post(':equipo_id/miembros')
     addMiembro(
-    @Param('equipoId') equipoId: string,
-    @Body() dto: AddMiembroDto,
-    @Headers('authorization') authHeader: string,
+        @Param('equipo_id') equipo_id: string,
+        @Body() dto: AddMiembroDto,
+        @Headers('authorization') authHeader: string,
     ) {
-    const accessToken = authHeader.split(' ')[1];
-    return this.equiposService.addMiembro(equipoId, dto, accessToken);
+        const accessToken = authHeader.split(' ')[1];
+        return this.equiposService.addMiembro(equipo_id, dto, accessToken);
     }
 
-    @Post(':equipoId/calificar')
+    @Post(':equipo_id/calificar')
     calificarEquipo(
-    @Param('equipoId') equipoId: string,
-    @User() user: { id: string },
-    @Body() dto: CalificarEquipoDto,
-    @Headers('authorization') authHeader: string,
+        @Param('equipo_id') equipo_id: string,
+        @User() user: { id: string },
+        @Body() dto: CalificarEquipoDto,
+        @Headers('authorization') authHeader: string,
     ) {
-    const accessToken = authHeader.split(' ')[1];
-    return this.equiposService.calificarEquipo(equipoId, user.id, dto, accessToken);
+        const accessToken = authHeader.split(' ')[1];
+        return this.equiposService.calificarEquipo(equipo_id, user.id, dto, accessToken);
     }
 
-    @Get(':equipoId/calificacion')
+    @Get(':equipo_id/calificacion')
     getCalificacion(
-    @Param('equipoId') equipoId: string,
-    @Headers('authorization') authHeader: string,
+        @Param('equipo_id') equipo_id: string,
+        @Headers('authorization') authHeader: string,
     ) {
-    const accessToken = authHeader.split(' ')[1];
-    return this.equiposService.getCalificacion(equipoId, accessToken);
-    }
-    
-    @Delete(':equipoId/miembros/:usuarioId')
-    removeMiembro(
-    @Param('equipoId') equipoId: string,
-    @Param('usuarioId') usuarioId: string,
-    @User() user: { id: string },
-    @Headers('authorization') authHeader: string,
-    ) {
-    const accessToken = authHeader.split(' ')[1];
-    return this.equiposService.removeMiembro(equipoId, usuarioId, user.id, accessToken);
+        const accessToken = authHeader.split(' ')[1];
+        return this.equiposService.getCalificacion(equipo_id, accessToken);
     }
 
-    @Get(':equipoId/nivel-estres')
-    getNivelEstresEquipo(
-    @Param('equipoId') equipoId: string,
-    @Headers('authorization') authHeader: string,
+    @Delete(':equipo_id/miembros/:usuarioId')
+    removeMiembro(
+        @Param('equipo_id') equipo_id: string,
+        @Param('usuarioId') usuarioId: string,
+        @User() user: { id: string },
+        @Headers('authorization') authHeader: string,
     ) {
-    const accessToken = authHeader.split(' ')[1];
-    return this.equiposService.getNivelEstresEquipo(equipoId, accessToken);
+        const accessToken = authHeader.split(' ')[1];
+        return this.equiposService.removeMiembro(equipo_id, usuarioId, user.id, accessToken);
+    }
+
+    @Get(':equipo_id/nivel-estres')
+    getNivelEstresEquipo(
+        @Param('equipo_id') equipo_id: string,
+        @Headers('authorization') authHeader: string,
+    ) {
+        const accessToken = authHeader.split(' ')[1];
+        return this.equiposService.getNivelEstresEquipo(equipo_id, accessToken);
     }
 }

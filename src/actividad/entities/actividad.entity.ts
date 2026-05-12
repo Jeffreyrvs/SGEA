@@ -4,6 +4,7 @@ export class Actividad {
     id!: string;
     materia_id!: string;
     usuario_id!: string;
+    equipo_id?: string;
     nombre!: string;
     tipo!: string;
     fecha_entrega!: Date;
@@ -14,7 +15,6 @@ export class Actividad {
     descripcion?: string;
     tiempo_estimado?: number;
     created_at?: Date;
-    equipo_asignado?: string;
     //fecha_completado?: Date;
 }
 
