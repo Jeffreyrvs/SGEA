@@ -48,9 +48,10 @@ export class CreateActividadDto {
     @IsNumber()
     tiempo_estimado?: number;
 
+
     @IsOptional()
     @IsString()
-    equipo_id?: string;
+    equipoId?: string;
 
     //@IsOptional()
     //@IsDateString()

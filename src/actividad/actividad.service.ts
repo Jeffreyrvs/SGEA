@@ -36,7 +36,7 @@ export class ActividadService {
         estatus: dto.estatus ?? StatusActividad.PENDIENTE,
         descripcion: dto.descripcion ?? null,
         tiempo_estimado: dto.tiempo_estimado ?? null,
-        equipo_id: dto.equipo_id ?? null,
+        equipoId: dto.equipoId ?? null,
         //fechaCompletado: dto.fechaCompletado ?? null,
       })
       .select()
@@ -91,12 +91,12 @@ export class ActividadService {
     return data;
   }
 
-  async findByEquipo(equipo_id: string, token?: string) {
+  async findByEquipo(equipoId: string, token?: string) {
     const supabase = this.supabaseService.getClient(token);
     const { data, error } = await supabase
       .from('actividades')
       .select('*')
-      .eq('equipo_id', equipo_id);
+      .eq('equipo_id', equipoId);
 
     if (error) throw new InternalServerErrorException(error.message);
     return data;

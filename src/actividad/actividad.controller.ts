@@ -58,13 +58,13 @@ export class ActividadController {
     return this.actividadService.findByUsuario(id_usuario, token);
   }
 
-  @Get('equipo/:equipo_id')
+  @Get('equipo/:equipoId')
   findByEquipo(
-    @Param('equipo_id', ParseUUIDPipe) equipo_id: string,
+    @Param('equipoId', ParseUUIDPipe) equipoId: string,
     @Headers('authorization') authHeader?: string,
   ) {
     const token = authHeader?.split(' ')[1];
-    return this.actividadService.findByEquipo(equipo_id, token);
+    return this.actividadService.findByEquipo(equipoId, token);
   }
 
   @Patch(':id')

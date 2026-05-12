@@ -4,7 +4,7 @@ export class Actividad {
     id!: string;
     materia_id!: string;
     usuario_id!: string;
-    equipo_id?: string;
+    equipoId?: string;
     nombre!: string;
     tipo!: string;
     fecha_entrega!: Date;
