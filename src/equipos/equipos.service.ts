@@ -238,9 +238,9 @@ export class EquiposService {
         // Calcular nuevo peso del estresor clima social
         let nuevoPeso: number;
         if (estresorExistente) {
-            nuevoPeso = Math.round((estresorExistente.peso + promedioTodosEquipos) / 2);
+            nuevoPeso = Math.round((estresorExistente.peso + (6 - promedioTodosEquipos)) / 2);
         } else {
-            nuevoPeso = Math.round(promedioTodosEquipos);
+            nuevoPeso = Math.round(6 - promedioTodosEquipos);
         }
 
         // Upsert estresor clima social
