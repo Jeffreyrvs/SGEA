@@ -95,7 +95,7 @@ export class ActividadService {
     const { data, error } = await supabase
       .from('actividades')
       .select('*')
-      .eq('equipo_id', equipoId);
+      .eq('equipoId', equipoId);
 
     if (error) throw new InternalServerErrorException(error.message);
     return data;
