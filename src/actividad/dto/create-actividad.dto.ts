@@ -53,10 +53,11 @@ export class CreateActividadDto {
     @IsString()
     equipoId?: string;
 
-    //@IsOptional()
-    //@IsDateString()
-    //fechaCompletado?: Date;
+    @IsOptional()
+    @IsDateString()
+    fechaCompletado?: Date;
 }
+
 
 
 

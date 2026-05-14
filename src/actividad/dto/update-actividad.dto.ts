@@ -63,7 +63,7 @@ export class UpdateActividadDto extends PartialType(CreateActividadDto) {
   @IsNotEmpty()
   equipoId?: string;
 
-  //@IsOptional()
-  //@IsDateString()
-  //fechaCompletado?: Date;
+  @IsOptional()
+  @IsDateString()
+  fechaCompletado?: Date;
 }

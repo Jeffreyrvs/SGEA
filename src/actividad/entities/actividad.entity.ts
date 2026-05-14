@@ -15,7 +15,7 @@ export class Actividad {
     descripcion?: string;
     tiempo_estimado?: number;
     created_at?: Date;
-    //fecha_completado?: Date;
+    fechaCompletado?: Date;
 }
 
 

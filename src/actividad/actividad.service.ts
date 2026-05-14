@@ -37,7 +37,6 @@ export class ActividadService {
         descripcion: dto.descripcion ?? null,
         tiempo_estimado: dto.tiempo_estimado ?? null,
         equipoId: dto.equipoId ?? null,
-        //fechaCompletado: dto.fechaCompletado ?? null,
       })
       .select()
       .single();
@@ -121,6 +120,12 @@ export class ActividadService {
     const camposAActualizar: any = {
       estatus: nuevoEstado,
     };
+
+    if (nuevoEstado === StatusActividad.COMPLETADA) {
+      camposAActualizar.fechaCompletado = new Date().toISOString();
+    } else {
+      camposAActualizar.fechaCompletado = null;
+    }
 
     return await this.update(id, camposAActualizar, token);
   }
