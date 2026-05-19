@@ -133,7 +133,7 @@ export class PerfilesService {
       }
     }
 
-    if (denominador < 0.5) return { sin_datos: true };
+    //if (denominador < 0.5) return { sin_datos: true };
 
     const valor = Math.round((numerador / denominador) * 20 * 10) / 10;
     const categoria = valor < 34 ? 'Bajo' : valor < 67 ? 'Medio' : 'Alto';
