@@ -105,6 +105,9 @@ export class EquiposService {
             id,
             nombre,
             creador_id,
+            materias (
+                nombre
+            ),
             miembros_equipo (
                 nombre_miembro,
                 email_miembro,
