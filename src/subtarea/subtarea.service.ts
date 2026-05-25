@@ -68,12 +68,12 @@ export class SubtareaService {
     const actividad = await this.fetchActividad(actividadId, token);
     this.assertOwner(actividad, userId);
 
-    if (!actividad.equipo_asignado) {
+    if (!actividad.equipoId) {
       throw new BadRequestException('La actividad no tiene un equipo asignado');
     }
 
     if (asignadoA) {
-      await this.assertTeamMember(actividad.equipo_asignado, asignadoA, token);
+      await this.assertTeamMember(actividad.equipoId, asignadoA, token);
     }
 
     return actividad;
