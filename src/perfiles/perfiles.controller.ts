@@ -61,6 +61,14 @@ export class PerfilesController {
   obtenerEstresores(@User() user: { id: string }) {
     return this.perfilesService.obtenerEstresores(user.id);
   }
+  @Get('estresores/:factor_id')
+  obtenerEstresor(@User() user: { id: string }, @Param('factor_id') factor_id: number) {
+    return this.perfilesService.obtenerEstresor(user.id, factor_id);
+  }
+  @Patch('estresores/:factor_id')
+  updateEstresor(@User() user: { id: string }, @Param('factor_id') factor_id: number, @Body() dto: CreateEstresoresDto) {
+    return this.perfilesService.updateEstresor(user.id, dto, factor_id);
+  }
 
   // ── Nivel de estrés ──
   @Get('nivel-estres')

@@ -49,7 +49,7 @@ export class PerfilesService {
     }
     return data;
   }
-
+  
   async guardarEstresores(usuarioId: string, dto: CreateEstresoresDto) {
     const supabase = this.supabaseService.getClient();
     const ahora = new Date().toISOString();
@@ -69,6 +69,39 @@ export class PerfilesService {
     if (error) throw new InternalServerErrorException(error.message);
     return data;
   }
+
+  async updateEstresor(usuarioId: string, dto: CreateEstresoresDto, factor_id:number,){
+    const supabase = this.supabaseService.getClient();
+    const ahora = new Date().toISOString();
+
+    const registros = dto.factores.map((f) => ({
+      usuario_id: usuarioId,
+      factor_id: factor_id,
+      peso: f.peso,
+      fecha_actualizacion: ahora,
+    }));
+    const { data, error } = await supabase
+      .from('estresores')
+      .upsert(registros, { onConflict: 'usuario_id,factor_id' })
+      .select('usuario_id, factor_id, peso, fecha_actualizacion');
+
+    if (error) throw new InternalServerErrorException(error.message);
+    return data;
+  }
+
+  async obtenerEstresor(usuarioId: string, factor_id: number) {
+    const supabase = this.supabaseService.getClient();
+    const { data, error } = await supabase
+      .from('estresores')
+      .select('usuario_id, factor_id, peso, fecha_actualizacion')
+      .eq('usuario_id', usuarioId)
+      .eq('factor_id',factor_id);
+
+    if (error) throw new InternalServerErrorException(error.message);
+    return data;
+  }
+
+
 
   async obtenerEstresores(usuarioId: string) {
     const supabase = this.supabaseService.getClient();
