@@ -5,11 +5,14 @@ import { UpdateActividadDto } from './dto/update-actividad.dto';
 import { SupabaseAuthGuard } from '../common/guards/supabase-auth.guard';
 import { User } from '../common/decorators/user.decorator';
 import { StatusActividad } from './enum/status.enum';
+import { GoogleCalendarService } from '../google-calendar/google-calendar.service';
 
 @UseGuards(SupabaseAuthGuard)
 @Controller('actividad')
 export class ActividadController {
-  constructor(private readonly actividadService: ActividadService) { }
+  constructor(private readonly actividadService: ActividadService,
+    private readonly googleCalendarService: GoogleCalendarService,
+  ) { }
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
@@ -20,6 +23,13 @@ export class ActividadController {
   ) {
     const token = authHeader?.split(' ')[1];
     return this.actividadService.create(createActividadDto, user.id, token);
+  }
+
+  @Post(':id/exportar-calendar')
+  async exportarACalendar(@Param('id') id: number) {
+    const actividad = await this.actividadService.findOne(id.toString());
+    const eventoId = await this.googleCalendarService.exportarActividad(actividad,id);
+    return { mensaje: 'Exportado exitosamente', eventoId };
   }
 
   @Get()
