@@ -26,9 +26,9 @@ export class ActividadController {
   }
 
   @Post(':id/exportar-calendar')
-  async exportarACalendar(@Param('id') id: number) {
-    const actividad = await this.actividadService.findOne(id.toString());
-    const eventoId = await this.googleCalendarService.exportarActividad(actividad,id);
+  async exportarACalendar(@Param('id', ParseUUIDPipe) id: string) {
+    const actividad = await this.actividadService.findOne(id);
+    const eventoId = await this.googleCalendarService.exportarActividad(actividad);
     return { mensaje: 'Exportado exitosamente', eventoId };
   }
 

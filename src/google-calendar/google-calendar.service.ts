@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException, Logger } from '@nestjs/common';
+import { Injectable, UnauthorizedException, Logger, InternalServerErrorException } from '@nestjs/common';
 import { google } from 'googleapis';
 import { Actividad } from '../actividad/entities/actividad.entity';
 
@@ -97,17 +97,38 @@ export class GoogleCalendarService {
         return '5'; 
     }
 
-    async exportarActividad(actividad: Actividad, idActividad: number){
+    async exportarActividad(actividad: Actividad) {
+        let oauth2Client;
         try {
-            const oauth2Client = this.getClientAutenticado({
+            oauth2Client = this.getClientAutenticado({
                 googleAccessToken: process.env.GOOGLE_ACCESS_TOKEN,
                 googleRefreshToken: process.env.GOOGLE_REFRESH_TOKEN,
-            });} catch (error) {
+            });
+        } catch (error) {
             this.logger.error('Error al autenticar con Google Calendar', error);
             throw new UnauthorizedException('No se pudo autenticar con Google Calendar');
         }
-    
-       
-    
-}
+
+        const event = this.mapearActividad(actividad);
+        const calendar = google.calendar({ version: 'v3', auth: oauth2Client });
+
+        try {
+            const response = await calendar.events.update({
+                calendarId: 'primary',
+                eventId: event.id,
+                requestBody: event,
+            });
+            return response.data.id;
+        } catch (error: any) {
+            if (error.status === 404 || error.response?.status === 404) {
+                const response = await calendar.events.insert({
+                    calendarId: 'primary',
+                    requestBody: event,
+                });
+                return response.data.id;
+            }
+            this.logger.error('Error al exportar actividad a Google Calendar', error);
+            throw new InternalServerErrorException('Error al exportar actividad a Google Calendar');
+        }
+    }
 }

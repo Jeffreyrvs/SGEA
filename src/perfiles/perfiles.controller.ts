@@ -4,6 +4,7 @@ import { PerfilesService } from './perfiles.service';
 import { CreatePerfilAcademicoDto } from './dto/create-perfil-academico.dto';
 import { CreateEstresoresDto } from './dto/create-estresores.dto';
 import { UpdatePerfilDto } from './dto/update-perfil.dto';
+import { UpdateEstresorDto } from './dto/update-estresor.dto';
 import { SupabaseAuthGuard } from '../common/guards/supabase-auth.guard';
 import { User } from '../common/decorators/user.decorator';
 
@@ -66,7 +67,7 @@ export class PerfilesController {
     return this.perfilesService.obtenerEstresor(user.id, factor_id);
   }
   @Patch('estresores/:factor_id')
-  updateEstresor(@User() user: { id: string }, @Param('factor_id') factor_id: number, @Body() dto: CreateEstresoresDto) {
+  updateEstresor(@User() user: { id: string }, @Param('factor_id') factor_id: number, @Body() dto: UpdateEstresorDto) {
     return this.perfilesService.updateEstresor(user.id, dto, factor_id);
   }
 

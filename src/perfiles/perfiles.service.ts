@@ -7,6 +7,7 @@ import { SupabaseService } from '../supabase/supabase.service';
 import { CreatePerfilAcademicoDto } from './dto/create-perfil-academico.dto';
 import { CreateEstresoresDto } from './dto/create-estresores.dto';
 import { UpdatePerfilDto } from './dto/update-perfil.dto';
+import { UpdateEstresorDto } from './dto/update-estresor.dto';
 
 @Injectable()
 export class PerfilesService {
@@ -70,19 +71,19 @@ export class PerfilesService {
     return data;
   }
 
-  async updateEstresor(usuarioId: string, dto: CreateEstresoresDto, factor_id:number,){
+  async updateEstresor(usuarioId: string, dto: UpdateEstresorDto, factor_id: number) {
     const supabase = this.supabaseService.getClient();
     const ahora = new Date().toISOString();
 
-    const registros = dto.factores.map((f) => ({
+    const registro = {
       usuario_id: usuarioId,
       factor_id: factor_id,
-      peso: f.peso,
+      peso: dto.peso,
       fecha_actualizacion: ahora,
-    }));
+    };
     const { data, error } = await supabase
       .from('estresores')
-      .upsert(registros, { onConflict: 'usuario_id,factor_id' })
+      .upsert(registro, { onConflict: 'usuario_id,factor_id' })
       .select('usuario_id, factor_id, peso, fecha_actualizacion');
 
     if (error) throw new InternalServerErrorException(error.message);
@@ -166,7 +167,7 @@ export class PerfilesService {
       }
     }
 
-    //if (denominador < 0.5) return { sin_datos: true };
+    if (denominador < 0.5) return { sin_datos: true };
 
     const valor = Math.round((numerador / denominador) * 20 * 10) / 10;
     const categoria = valor < 34 ? 'Bajo' : valor < 67 ? 'Medio' : 'Alto';
