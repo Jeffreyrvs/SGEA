@@ -11,6 +11,7 @@ import { ActividadModule } from './actividad/actividad.module';
 import { RubricasModule } from './rubricas/rubricas.module';
 import { SubtareaModule } from './subtarea/subtarea.module';
 import { AuthGoogleModule } from './google-calendar/auth-google/auth-google.module';
+import { ReportesModule } from './reportes/reportes.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { AuthGoogleModule } from './google-calendar/auth-google/auth-google.modu
     RubricasModule,
     SubtareaModule,
     AuthGoogleModule,
+    ReportesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

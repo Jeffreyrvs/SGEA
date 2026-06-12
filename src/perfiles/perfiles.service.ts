@@ -167,10 +167,39 @@ export class PerfilesService {
       }
     }
 
-    if (denominador < 0.5) return { sin_datos: true };
+    if (denominador < 0.1) return { sin_datos: true };
 
     const valor = Math.round((numerador / denominador) * 20 * 10) / 10;
     const categoria = valor < 34 ? 'Bajo' : valor < 67 ? 'Medio' : 'Alto';
+
+    // Guardar captura una vez al día máximo
+    const hoy = new Date().toISOString().split('T')[0]; // formato YYYY-MM-DD
+
+    const { data: capturaExistente } = await supabase
+      .from('capturas_estres')
+      .select('id')
+      .eq('usuario_id', usuarioId)
+      .gte('fecha_captura', `${hoy}T00:00:00`)
+      .lte('fecha_captura', `${hoy}T23:59:59`)
+      .maybeSingle();
+
+    if (!capturaExistente) {
+      // Obtener distribución de factores para guardar en JSON
+      const factores = rows.reduce((acc, row) => {
+        acc[`factor_${row.factor_id}`] = row.peso;
+        return acc;
+      }, {} as Record<string, number>);
+
+      await supabase
+        .from('capturas_estres')
+        .insert({
+          usuario_id: usuarioId,
+          ne_valor: valor,
+          fecha_captura: new Date().toISOString(),
+          factor: factores,
+        });
+    }
+
     return { valor, categoria, sin_datos: false };
   }
 
