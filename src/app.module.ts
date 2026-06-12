@@ -10,6 +10,7 @@ import { EquiposModule } from './equipos/equipos.module';
 import { ActividadModule } from './actividad/actividad.module';
 import { RubricasModule } from './rubricas/rubricas.module';
 import { SubtareaModule } from './subtarea/subtarea.module';
+import { AuthGoogleModule } from './google-calendar/auth-google/auth-google.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { SubtareaModule } from './subtarea/subtarea.module';
     ActividadModule,
     RubricasModule,
     SubtareaModule,
+    AuthGoogleModule,
   ],
   controllers: [AppController],
   providers: [AppService],

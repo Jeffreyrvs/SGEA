@@ -5,7 +5,8 @@ import { UpdateActividadDto } from './dto/update-actividad.dto';
 import { SupabaseAuthGuard } from '../common/guards/supabase-auth.guard';
 import { User } from '../common/decorators/user.decorator';
 import { StatusActividad } from './enum/status.enum';
-import { GoogleCalendarService } from '../google-calendar/google-calendar.service';
+import { GoogleCalendarService } from '../google-calendar/google-calendar.service.js';
+import { JwtGuard } from '../auth/guards/jwt.guard';
 
 @UseGuards(SupabaseAuthGuard)
 @Controller('actividad')
@@ -26,9 +27,14 @@ export class ActividadController {
   }
 
   @Post(':id/exportar-calendar')
-  async exportarACalendar(@Param('id', ParseUUIDPipe) id: string) {
-    const actividad = await this.actividadService.findOne(id);
-    const eventoId = await this.googleCalendarService.exportarActividad(actividad);
+  async exportarACalendar(
+    @Param('id', ParseUUIDPipe) id: string,
+    @User() user: { id: string },
+    @Headers('authorization') authHeader?: string,
+  ) {
+    const token = authHeader?.replace('Bearer ', '');
+    const actividad = await this.actividadService.findOne(id, token);
+    const eventoId = await this.googleCalendarService.exportarActividad(actividad, user.id);
     return { mensaje: 'Exportado exitosamente', eventoId };
   }
 
@@ -105,4 +111,36 @@ export class ActividadController {
     const token = authHeader?.split(' ')[1];
     return this.actividadService.remove(id, token);
   }
+
+  @UseGuards(JwtGuard)
+  @Post(':id/exportar-calendario')
+  async exportarCalendario(
+    @Param('id', ParseUUIDPipe) id: string,
+    @User() user: { id: string },
+    @Headers('authorization') auth: string,
+  ) {
+    const token = auth?.replace('Bearer ', '');
+    const actividad = await this.actividadService.findOne(id, token);
+    return this.googleCalendarService.exportarActividad(actividad, user.id);
+  }
+
+  // Exportación masiva de todas las actividades del usuario
+  @UseGuards(JwtGuard)
+  @Post('exportar-todas')
+  async exportarTodas(
+    @User() user: { id: string },
+    @Headers('authorization') auth: string,
+  ) {
+    const token = auth?.replace('Bearer ', '');
+    const actividades = await this.actividadService.findByUsuario(user.id, token);
+
+    const resultados = await Promise.allSettled(
+      actividades.map((a) => this.googleCalendarService.exportarActividad(a, user.id)),
+    );
+
+  return {
+    exitosas: resultados.filter((r) => r.status === 'fulfilled').length,
+    fallidas:  resultados.filter((r) => r.status === 'rejected').length,
+  };
+}
 }

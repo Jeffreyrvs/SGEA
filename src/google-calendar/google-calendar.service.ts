@@ -1,6 +1,7 @@
 import { Injectable, UnauthorizedException, Logger, InternalServerErrorException } from '@nestjs/common';
 import { google } from 'googleapis';
-import { Actividad } from '../actividad/entities/actividad.entity';
+import { Actividad } from '../actividad/entities/actividad.entity.js';
+import { SupabaseService } from '../supabase/supabase.service.js';
 
 interface CalendarUser {
     googleRefreshToken?: string;
@@ -10,6 +11,8 @@ interface CalendarUser {
 @Injectable()
 export class GoogleCalendarService {
     private readonly logger = new Logger(GoogleCalendarService.name);
+
+    constructor(private readonly supabaseService: SupabaseService) {}
 
     private getClientAutenticado(usuario: CalendarUser) {
         const oauth2Client = new google.auth.OAuth2(
@@ -97,38 +100,69 @@ export class GoogleCalendarService {
         return '5'; 
     }
 
-    async exportarActividad(actividad: Actividad) {
-        let oauth2Client;
-        try {
-            oauth2Client = this.getClientAutenticado({
-                googleAccessToken: process.env.GOOGLE_ACCESS_TOKEN,
-                googleRefreshToken: process.env.GOOGLE_REFRESH_TOKEN,
-            });
-        } catch (error) {
-            this.logger.error('Error al autenticar con Google Calendar', error);
-            throw new UnauthorizedException('No se pudo autenticar con Google Calendar');
-        }
+    async exportarActividad(actividad: Actividad, usuarioId: string) {
+  // 1. Obtener tokens del usuario desde Supabase
+  const supabase = this.supabaseService.getClient(); // service role
+  const { data: usuario, error } = await supabase
+    .from('usuarios')
+    .select('google_access_token, google_refresh_token, google_token_expiry')
+    .eq('id', usuarioId)
+    .single();
 
-        const event = this.mapearActividad(actividad);
-        const calendar = google.calendar({ version: 'v3', auth: oauth2Client });
+  if (error || !usuario?.google_refresh_token) {
+    throw new UnauthorizedException(
+      'El usuario no ha conectado Google Calendar. Visita /auth/google/connect',
+    );
+  }
 
-        try {
-            const response = await calendar.events.update({
-                calendarId: 'primary',
-                eventId: event.id,
-                requestBody: event,
-            });
-            return response.data.id;
-        } catch (error: any) {
-            if (error.status === 404 || error.response?.status === 404) {
-                const response = await calendar.events.insert({
-                    calendarId: 'primary',
-                    requestBody: event,
-                });
-                return response.data.id;
-            }
-            this.logger.error('Error al exportar actividad a Google Calendar', error);
-            throw new InternalServerErrorException('Error al exportar actividad a Google Calendar');
-        }
+  // 2. Construir cliente autenticado con los tokens del usuario
+  let oauth2Client;
+  try {
+    oauth2Client = this.getClientAutenticado({
+      googleAccessToken:  usuario.google_access_token,
+      googleRefreshToken: usuario.google_refresh_token,
+    });
+  } catch (err) {
+    throw new UnauthorizedException('Error al autenticar con Google Calendar');
+  }
+
+  // 3. Auto-refresh: si el access_token expiró, googleapis lo renueva solo
+  //    pero necesitamos persistir el nuevo token
+  oauth2Client.on('tokens', async (tokens) => {
+    if (tokens.access_token) {
+      await supabase
+        .from('usuarios')
+        .update({
+          google_access_token: tokens.access_token,
+          google_token_expiry: tokens.expiry_date
+            ? new Date(tokens.expiry_date).toISOString()
+            : null,
+        })
+        .eq('id', usuarioId);
     }
+  });
+
+  // 4. El resto queda igual que tenías
+  const event    = this.mapearActividad(actividad);
+  const calendar = google.calendar({ version: 'v3', auth: oauth2Client });
+
+  try {
+    const response = await calendar.events.update({
+      calendarId: 'primary',
+      eventId: event.id,
+      requestBody: event,
+    });
+    return response.data.id;
+  } catch (error: any) {
+    if (error.status === 404 || error.response?.status === 404) {
+      const response = await calendar.events.insert({
+        calendarId: 'primary',
+        requestBody: event,
+      });
+      return response.data.id;
+    }
+    this.logger.error('Error al exportar actividad', error);
+    throw new InternalServerErrorException('Error al exportar actividad a Google Calendar');
+  }
+}
 }

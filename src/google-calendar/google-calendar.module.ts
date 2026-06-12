@@ -1,7 +1,9 @@
 import { Module } from '@nestjs/common';
-import { GoogleCalendarService } from './google-calendar.service';
+import { GoogleCalendarService } from './google-calendar.service.js';
+import { SupabaseModule } from '../supabase/supabase.module.js';
 
 @Module({
+  imports: [SupabaseModule],
   providers: [GoogleCalendarService],
   exports: [GoogleCalendarService],
 })
